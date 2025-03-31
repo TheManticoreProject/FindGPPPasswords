@@ -1,11 +1,11 @@
 package main
 
 import (
+	"FindGPPPasswords/core"
 	"FindGPPPasswords/core/config"
 	"FindGPPPasswords/core/crypto"
 	"FindGPPPasswords/core/exporter"
 	"FindGPPPasswords/core/logger"
-	"FindGPPPasswords/network/dns"
 	"FindGPPPasswords/network/ldap"
 	"slices"
 
@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jfjallid/go-smb/smb"
-	"github.com/jfjallid/go-smb/spnego"
 	"github.com/p0dalirius/goopts/parser"
 )
 
@@ -103,102 +101,6 @@ func parseArgs() {
 		ap.Usage()
 		os.Exit(1)
 	}
-}
-
-func SMBListFilesRecursivelyAndCallback(session *smb.Connection, share string, dir string, callback func(*smb.Connection, string, string) error) (err error) {
-	DEBUG := false
-
-	// Connect to share
-	err = session.TreeConnect(share)
-	if err != nil {
-		if err == smb.StatusMap[smb.StatusBadNetworkName] {
-			if DEBUG {
-				fmt.Printf("[SMBListFilesRecursivelyAndCallback] Share %s can not be found!\n", share)
-			}
-			return
-		}
-		if DEBUG {
-			fmt.Printf("[SMBListFilesRecursivelyAndCallback] Error: %s\n", err)
-		}
-		return
-	}
-	defer session.TreeDisconnect(share)
-
-	// List files
-	if DEBUG {
-		logger.Debug(fmt.Sprintf("Listing files of '%s'", dir))
-	}
-	entries, err := session.ListDirectory(share, dir, "*")
-	if err != nil {
-		if err == smb.StatusMap[smb.StatusAccessDenied] {
-			if DEBUG {
-				fmt.Printf("[SMBListFilesRecursivelyAndCallback] Could connect to [%s] but listing files in directory (%s) was prohibited\n", share, dir)
-			}
-			return nil
-		}
-		if DEBUG {
-			fmt.Printf("[SMBListFilesRecursivelyAndCallback] Error: %s\n", err)
-		}
-		return nil
-	}
-
-	// Explore further and callback
-	for _, entry := range entries {
-		if entry.IsDir {
-			if DEBUG {
-				logger.Debug(fmt.Sprintf("Found Directory '%s'", entry.FullPath))
-			}
-			err = SMBListFilesRecursivelyAndCallback(session, share, entry.FullPath, callback)
-			if err != nil {
-				if DEBUG {
-					fmt.Printf("[SMBListFilesRecursivelyAndCallback] Failed to list files in directory %s with error: %s\n", entry.FullPath, err)
-				}
-				continue
-			}
-		} else {
-			if DEBUG {
-				logger.Debug(fmt.Sprintf("Found file '%s'", entry.FullPath))
-			}
-			callback(session, share, entry.FullPath)
-		}
-	}
-
-	return nil
-}
-
-func FindCPasswords(dnsHostname []string, config config.Config, testResults *crypto.GroupPolicyPreferencePasswordsFound) error {
-	targetIp := dns.DNSLookup(dnsHostname[0], config.DnsNameServer)
-
-	if len(targetIp) > 0 {
-		// Define the SMB connection options
-		options := smb.Options{
-			Host: targetIp[0],
-			Port: 445,
-			Initiator: &spnego.NTLMInitiator{
-				User:     config.Credentials.Username,
-				Password: config.Credentials.Password,
-				Domain:   config.Credentials.Domain,
-			},
-			DialTimeout: time.Millisecond * time.Duration(5000),
-		}
-
-		// Create a new SMB connection
-		session, err := smb.NewConnection(options)
-		if err != nil {
-			return err
-		}
-		defer session.Close()
-
-		// Find all XML files in the root directory
-		err = SMBListFilesRecursivelyAndCallback(session, "SYSVOL", "", testResults.CallbackFunctionCPassword)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("could not resolve host %s", dnsHostname[0])
-	}
-
-	return nil
 }
 
 func TestCredentials(gpppfound crypto.GroupPolicyPreferencePasswordsFound, config config.Config) {
@@ -348,11 +250,8 @@ func main() {
 		gpppfound.Entries = make(map[string][]*crypto.CPasswordEntry)
 
 		if len(domainControllersResults) != 0 {
-			for k, entry := range domainControllersResults {
-				logger.Info(fmt.Sprintf("(%d/%d) Searching for GPPPasswords in '\\\\%s\\SYSVOL\\' ... ", k+1, len(domainControllersResults), entry.GetEqualFoldAttributeValues("dnsHostname")[0]))
 
-				FindCPasswords(entry.GetEqualFoldAttributeValues("dnsHostname"), config, &gpppfound)
-			}
+			core.RunWorkers(config.Threads, domainControllersResults, config, &gpppfound)
 
 			logger.Info("")
 			if len(gpppfound.Entries) == 0 {

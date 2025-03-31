@@ -19,6 +19,7 @@
  - [x] Decrypts the passwords and prints them in cleartext.
  - [x] Outputs to a Excel file with option `--export-xlsx <path_to_xlsx_file>`.
  - [x] Option to test the credentials of the found GPP passwords with the `--test-credentials` option.
+ - [x] Multi-threaded mode with option `--threads <number_of_threads>`.
 
 ## Demonstration
 
