@@ -43,7 +43,7 @@ var (
 )
 
 func parseArgs() {
-	ap := parser.ArgumentsParser{Banner: "FindGPPPasswords - by Remi GASCOU (Podalirius) - v1.1"}
+	ap := parser.ArgumentsParser{Banner: "FindGPPPasswords - by Remi GASCOU (Podalirius) - v1.2"}
 
 	ap.NewBoolArgument(&quiet, "-q", "--quiet", false, "Show no information at all.")
 	ap.NewBoolArgument(&debug, "-d", "--debug", false, "Debug mode.")

@@ -42,10 +42,10 @@ There is also the possibility to test the credentials of the found GPP passwords
 ## Usage
 
 ```              
-$ ./FindGPPPasswords-linux-amd64 -h
-FindGPPPasswords - by @podalirius_ - v1.1
+$ ./FindGPPPasswords -h
+FindGPPPasswords - by Remi GASCOU (Podalirius) - v1.2
 
-Usage: FindGPPPasswords [--quiet] [--debug] [--no-colors] [--export-xlsx <string>] [--test-credentials] --domain <string> --username <string> [--password <string>] [--hashes <string>] [--threads <int>] [--nameserver <string>] --dc-ip <string> [--ldap-port <int>] [--use-ldaps]
+Usage: FindGPPPasswords [--quiet] [--debug] [--no-colors] [--export-xlsx <string>] [--test-credentials] --domain <string> --username <string> [--password <string>] [--hashes <string>] [--threads <int>] [--nameserver <string>] --dc-ip <string> [--ldap-port <tcp port>] [--use-ldaps]
 
   -q, --quiet      Show no information at all. (default: false)
   -d, --debug      Debug mode. (default: false)
@@ -66,9 +66,10 @@ Usage: FindGPPPasswords [--quiet] [--debug] [--no-colors] [--export-xlsx <string
     -ns, --nameserver <string> IP Address of the DNS server to use in the queries. If omitted, it will use the IP of the domain controller specified in the -dc parameter. (default: "")
 
   LDAP Connection Settings:
-    -dc, --dc-ip <string>  IP Address of the domain controller or KDC (Key Distribution Center) for Kerberos. If omitted, it will use the domain part (FQDN) specified in the identity parameter.
-    -lp, --ldap-port <int> Port number to connect to LDAP server. (default: 0)
-    -l, --use-ldaps        Use LDAPS instead of LDAP. (default: false)
+    -dc, --dc-ip <string>       IP Address of the domain controller or KDC (Key Distribution Center) for Kerberos. If omitted, it will use the domain part (FQDN) specified in the identity parameter.
+    -lp, --ldap-port <tcp port> Port number to connect to LDAP server. (default: 389)
+    -L, --use-ldaps             Use LDAPS instead of LDAP. (default: false)
+
 ```
 
 ## Contributing
