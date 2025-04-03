@@ -1,7 +1,7 @@
 ![](./.github/banner.png)
 
 <p align="center">
-    FindGPPPasswords, A cross-platforms tool to find and decrypt Group Policy Preferences passwords from the SYSVOL share using low-privileged domain accounts.
+    FindGPPPasswords, A cross-platform tool to find and decrypt Group Policy Preferences passwords from the SYSVOL share using low-privileged domain accounts.
     <br>
     <a href="https://github.com/p0dalirius/FindGPPPasswords/actions/workflows/release.yaml" title="Build"><img alt="Build and Release" src="https://github.com/p0dalirius/FindGPPPasswords/actions/workflows/release.yaml/badge.svg"></a>
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/p0dalirius/FindGPPPasswords">
